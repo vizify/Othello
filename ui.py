@@ -119,7 +119,7 @@ class Selector:
     def handle_event(self, event):
         if self.left.handle_event(event) or self.right.handle_event(event):
             return True
-        if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.center.colliderpoint(event.pos)):
+        if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.center.collidepoint(event.pos)):
             self.step(1)
             return True
         return False
@@ -132,28 +132,80 @@ class Selector:
         draw_text(surf, f"{self.label}: ", self.size, MUTED, (self.center.centerx, self.center.centery), anchor="midright")
         draw_text(surf, self.value, self.size, ACCENT, (self.center.centerx, self.center.centery), anchor="midleft", bold=True)
 
+class TextInput:
+    def __init__(self, rect, max_len=16, placeholder="Your Name", size=26):
+        self.rect = pygame.Rect(rect)
+        self.max_len = max_len
+        self.placeholder = placeholder
+        self.size = size
+        self.text = ""
+        self.active = True
+        self._blink = 0.0
+
+    def handle_event(self, event):
+        """Returns 'submit' when Enter is pressed"""
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self.active = self.rect.collidepoint(event.pos)
+        if not self.active:
+            return None
+        if event.type == pygame.TEXTINPUT:
+            for ch in event.text:
+                if ch.isprintable() and len(self.text) < self.max_len:
+                    self.text += ch
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            elif event.key == (pygame.K_RETURN, pygame.K_KP_ENTER):
+                return "submit"
+        return None
+
+    def update(self, dt):
+        self._blink = (self._blink + dt) % 1.0
+
+    def draw(self, surf):
+        pygame.draw.rect(surf, (24, 28, 35), self.rect, border_radius=8)
+        pygame.draw.rect(surf, ACCENT if self.active else BUTTON_HOVER, self.rect, width=2, border_radius=8)
+        x, cy = self.rect.x + 14, self.rect.centery
+        if self.text:
+            r = draw_text(surf, self.text, self.size, TEXT, (x, cy), anchor="midleft")
+            cursor_x = r.right + 2
+        else:
+            draw_text(surf, self.placeholder, self.size, MUTED, (x, cy), anchor="midleft")
+            cursor_x = x
+        if self.active and self._blink < 0.5:
+            pygame.draw.line(surf, TEXT, (cursor_x, cy - self.size // 2), (cursor_x, cy + self.size // 2), 2)
+
 if __name__ == "__main__":
     pygame.init()
-    screen = pygame.display.set_mode((600, 400))
+    screen = pygame.display.set_mode((600, 450))
     pygame.display.set_caption("UI Test")
     clock = pygame.time.Clock()
 
-    btn = Button((200, 100, 200, 50), "Click Me", callback=lambda: print("Clicked!"))
-    sel = Selector((150, 200, 300, 40), ["Easy", "Medium", "Hard"], label="Difficulty")
+    text_input = TextInput((150, 80, 300, 45), placeholder="Enter your name...")
+    sel = Selector((150, 150, 300, 45), ["Easy", "Medium", "Hard"], label="Difficulty")
+    btn = Button((200, 220, 200, 50), "Submit", callback=lambda: print(f"Submitted name: {text_input.text}, difficulty: {sel.value}"))
 
     running = True
     while running:
+        dt = clock.tick(60) / 1000.0  # seconds passed for cursor blinking
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             btn.handle_event(event)
             sel.handle_event(event)
+            result = text_input.handle_event(event)
+            if result == "submit":
+                print(f"Enter pressed! Name: {text_input.text}")
+
+        text_input.update(dt)
 
         screen.fill((22, 26, 32))
-        draw_panel(screen, pygame.Rect(100, 50, 400, 250))
-        btn.draw(screen)
+        draw_panel(screen, pygame.Rect(100, 40, 400, 260))
+        text_input.draw(screen)
         sel.draw(screen)
+        btn.draw(screen)
 
         pygame.display.flip()
-        clock.tick(60)
+
     pygame.quit()
