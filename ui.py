@@ -95,10 +95,10 @@ class Button:
 
 class Selector:
     """'<  Option  >' widget cycling through a list of options."""
-    def __init__(self, rect, options, label, index=0, on_change=None, size=24):
+    def __init__(self, rect, label, options, index=0, on_change=None, size=24):
         self.rect = pygame.Rect(rect)
-        self.options = options
         self.label = label
+        self.options = options
         self.index = index
         self.on_change = on_change
         self.size = size

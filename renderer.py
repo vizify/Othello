@@ -24,7 +24,7 @@ def lerp_color(a, b, t):
     return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 class BoardRenderer:
-    def __init__(self, board):
+    def __init__(self, board=None):
         self.board_surface = self._build_board()
         self._piece_shadow_cache = {}
     """Static Board"""
@@ -139,7 +139,7 @@ class BoardRenderer:
         if anim:
             placed = anim["placed"]
             flip_map = anim["flips"]
-            elapse = now - anim["start"]
+            elapsed = now - anim["start"]
         g = game.board.grid
         for r in range(N):
             for c in range(N):
@@ -151,7 +151,7 @@ class BoardRenderer:
                     t = max(0.0, elapsed / PLACE_DURATION)
                     self.draw_piece(surf, cx, cy, v, scale=max(0.05, ease_out_back(t)))
                 elif (r, c) in flip_map:
-                    t = (elapsed - flip_map[(r, c)] / FLIP_DURATION)
+                    t = (elapsed - flip_map[(r, c)]) / FLIP_DURATION
                     t = min(1.0, max(0.0, t))
                     color = -v if t < 0.5 else v
                     sx = math.cos(t * math.pi)
@@ -197,9 +197,9 @@ class BoardRenderer:
         #turn / status
         y += 4
         turn_color = ACCENT if not game.over else TEXT
-        turn_next = info["turn_next"]
+        turn_next = info.get("turn_next") or info.get("turn_text", "")
         if info.get("thinking"):
-            turn_text += "." * (int(pygame.time.get_ticks() / 333) % 4)
+            turn_next += "." * (int(pygame.time.get_ticks() / 333) % 4)
         draw_text(surf, turn_next, 20, turn_color, (x + 20, y), bold=True)
         y += 30
         status = fit_text(game.status, 15, w - 40)
@@ -224,50 +224,50 @@ class BoardRenderer:
             ly += line_h
 
 
-if __name__ == "__main__":
-    from engine import Game
+# if __name__ == "__main__":
+#     from engine import Game
 
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Renderer Test")
-    clock = pygame.time.Clock()
+#     pygame.init()
+#     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+#     pygame.display.set_caption("Renderer Test")
+#     clock = pygame.time.Clock()
 
-    game = Game()
-    renderer = BoardRenderer(game.board)
+#     game = Game()
+#     renderer = BoardRenderer(game.board)
 
-    running = True
-    while running:
-        hover_cell = renderer.cell_at(pygame.mouse.get_pos())
-        valid_moves = game.valid_moves()
+#     running = True
+#     while running:
+#         hover_cell = renderer.cell_at(pygame.mouse.get_pos())
+#         valid_moves = game.valid_moves()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if hover_cell and hover_cell in valid_moves:
-                    game.play(*hover_cell)
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 running = False
+#             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+#                 if hover_cell and hover_cell in valid_moves:
+#                     game.play(*hover_cell)
 
-        # Prepare sidebar info dictionary
-        info = {
-            "mode_text": "PVP Test Mode",
-            "labels": {BLACK: "Player 1", WHITE: "Player 2"},
-            "turn_next": "Black's Turn" if game.current == BLACK else "White's Turn",
-            "history_bottom": HEIGHT - 30,
-            "thinking": False,
-        }
+#         # Prepare sidebar info dictionary
+#         info = {
+#             "mode_text": "PVP Test Mode",
+#             "labels": {BLACK: "Player 1", WHITE: "Player 2"},
+#             "turn_next": "Black's Turn" if game.current == BLACK else "White's Turn",
+#             "history_bottom": HEIGHT - 30,
+#             "thinking": False,
+#         }
 
-        # Draw frame
-        screen.fill(BG)
-        renderer.draw(
-            screen,
-            game,
-            hints=list(valid_moves.keys()),
-            hover=hover_cell,
-            hover_color=game.current,
-        )
-        renderer.draw_sidebar(screen, game, info)
+#         # Draw frame
+#         screen.fill(BG)
+#         renderer.draw(
+#             screen,
+#             game,
+#             hints=list(valid_moves.keys()),
+#             hover=hover_cell,
+#             hover_color=game.current,
+#         )
+#         renderer.draw_sidebar(screen, game, info)
 
-        pygame.display.flip()
-        clock.tick(FPS)
+#         pygame.display.flip()
+#         clock.tick(FPS)
 
-    pygame.quit()
+#     pygame.quit()

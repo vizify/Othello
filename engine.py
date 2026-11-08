@@ -96,6 +96,20 @@ class Board:
             self.grid[rr][cc] = p
         return flips
 
+    def copy(self):
+        return Board([row[:] for row in self.grid])
+
+    def count_moves(self, p):
+        return len(self.valid_moves(p))
+
+    has_moves = has_move
+
+    def undo_move(self, r, c, p, flips):
+        self.grid[r][c] = EMPTY
+        opp = -p
+        for rr, cc in flips:
+            self.grid[rr][cc] = opp
+
     def count(self, value):
         """counts the number of black and white pieces to determine the winner"""
         return sum(row.count(value) for row in self.grid)
