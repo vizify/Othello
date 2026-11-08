@@ -69,7 +69,7 @@ class GameOver(BaseState):
         surf.blit(dim, (0, 0))
 
         p = self.panel
-        draw_panel(surf, p, PANEL, radius=20, border=self.color)
+        draw_panel(surf, p, PANEL, radius=20, border=(self.color, 3))
         draw_text(surf, "GAME OVER", 20, MUTED, (p.centerx, p.y + 35), anchor="center", bold=True)
         draw_text(surf, self.headline, 50, self.color, (p.centerx, p.y + 90), anchor="center", bold=True)
         draw_text(surf, self.score_line, 30, TEXT, (p.centerx, p.y + 150), anchor="center")
