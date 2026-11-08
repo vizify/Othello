@@ -14,3 +14,12 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+
+# Build and distribution files
+*.exe
+*.dist/
+*.build/
+*.onefile-build/
+dist/
+build/
+*.spec
